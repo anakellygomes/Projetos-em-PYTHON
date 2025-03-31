@@ -1,0 +1,66 @@
+import pandas as pd
+import dash
+from dash import dcc, html
+from dash.dependencies import Input, Output
+import plotly.express as px
+import seaborn as sns
+import matplotlib.pyplot as plt
+
+# Leia o arquivo CSV em um dataframe
+df = pd.read_csv('ecommerce_estatistica.csv')
+
+# Inicialize o aplicativo Dash
+app = dash.Dash(__name__)
+
+# Layout do aplicativo
+app.layout = html.Div([
+    html.H1("Visualização de Dados de E-commerce", style={'text-align': 'center'}),
+    dcc.Dropdown(
+        id='dropdown-graficos',
+        options=[
+            {'label': 'Histograma de Preços', 'value': 'histograma'},
+            {'label': 'Dispersão Preço x Quantidade Vendida', 'value': 'dispersao'},
+            {'label': 'Mapa de Calor de Correlações', 'value': 'calor'},
+            {'label': 'Gráfico de Barras (Marca x Vendas)', 'value': 'barras'},
+            {'label': 'Gráfico de Pizza (Proporção por Temporada)', 'value': 'pizza'},
+            {'label': 'Gráfico de Densidade de Descontos', 'value': 'densidade'},
+            {'label': 'Regressão Linear (Preço x Vendas)', 'value': 'regressao'}
+        ],
+        value='histograma',
+        placeholder="Selecione o gráfico para exibição"
+    ),
+    dcc.Graph(id='grafico-output')
+])
+
+# Callback para atualizar o gráfico baseado na seleção
+@app.callback(
+    Output('grafico-output', 'figure'),
+    [Input('dropdown-graficos', 'value')]
+)
+def update_graph(grafico):
+    if grafico == 'histograma':
+        fig = px.histogram(df, x='Preço', title="Distribuição de Preços")
+    elif grafico == 'dispersao':
+        fig = px.scatter(df, x='Preço', y='Qtd_Vendidos', title="Dispersão: Preço x Quantidade Vendida")
+    elif grafico == 'calor':
+        corr = df.corr()
+        fig = px.imshow(corr, text_auto=True, title="Mapa de Calor de Correlações")
+    elif grafico == 'barras':
+        vendas_por_marca = df.groupby('Marca')['Qtd_Vendidos'].sum().reset_index()
+        fig = px.bar(vendas_por_marca, x='Marca', y='Qtd_Vendidos', title="Vendas por Marca")
+    elif grafico == 'pizza':
+        proporcao = df['Temporada'].value_counts().reset_index()
+        proporcao.columns = ['Temporada', 'Contagem']
+        fig = px.pie(proporcao, names='Temporada', values='Contagem', title="Proporção por Temporada")
+    elif grafico == 'densidade':
+        fig = px.density_heatmap(df, x='Desconto', title="Densidade de Descontos")
+    elif grafico == 'regressao':
+        fig = px.scatter(df, x='Preço', y='Qtd_Vendidos', trendline="ols", title="Regressão Linear: Preço x Quantidade Vendida")
+    return fig
+
+# Execute o aplicativo
+if __name__ == '__main__':
+    app.run_server(debug=True)
+
+    # LINK DE ACESSO: python app_dash_py
+    

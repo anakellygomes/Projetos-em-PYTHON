@@ -1,7 +1,6 @@
 import pandas as pd
 import matplotlib.pyplot as plt
 import seaborn as sns
-import statsmodels.api as sm
 
 # Lendo o arquivo CSV em um dataframe
 df = pd.read_csv("ecommerce_estatistica.csv")
@@ -22,8 +21,8 @@ plt.xlabel('Preço')
 plt.ylabel('Quantidade Vendida')
 plt.show()
 
-# Mapa de calor - Exemplo: Correlação entre variáveis
-correlation_matrix = df.corr()
+# Mapa de calor - Ajustado para lidar apenas com colunas numéricas
+correlation_matrix = df.select_dtypes(include=['float64', 'int64']).corr()
 sns.heatmap(correlation_matrix, annot=True, cmap='coolwarm', fmt='.2f')
 plt.title('Mapa de Calor de Correlações')
 plt.show()
